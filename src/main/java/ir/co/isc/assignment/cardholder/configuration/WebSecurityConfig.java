@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -20,19 +21,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) {
-        web.ignoring().antMatchers("/h2-console/**");
+        web.ignoring().antMatchers("/h2-console/**")
+                .antMatchers("/swagger-ui/**");
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http
+                .cors().disable()
                 .httpBasic()
                 .and()
                 .authorizeRequests().antMatchers("/h2-console**").permitAll()
                 .and()
                 .authorizeRequests().antMatchers("/swagger-ui/**").permitAll()
                 .and()
-                .authorizeRequests().antMatchers("/secret/**").authenticated()
+                .authorizeRequests().antMatchers("/api/**").hasAnyRole("ADMIN", "USER")
                 .and()
                 .authorizeRequests().antMatchers("/**").permitAll();
     }

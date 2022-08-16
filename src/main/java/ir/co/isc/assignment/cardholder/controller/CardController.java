@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -42,6 +43,7 @@ public class CardController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     PageDto<CardDto> findAllByCriteria(
             @RequestParam(required = false) @Pattern(regexp = "^[^<>%\\-@+$|='\"]*$") String holderNationalCode,
             @RequestParam(required = false) @Pattern(regexp = "^[^<>%\\-@+$|='\"]*$") String holderFirstName,
@@ -90,6 +92,7 @@ public class CardController {
     }
 
     @PostMapping()
+    @PreAuthorize("hasRole('ADMIN')")
     public CardDto save(@RequestBody CardDto cardDto) {
         CardEntity card = cardDtoMapper.mapToCardEntity(cardDto);
         try {
