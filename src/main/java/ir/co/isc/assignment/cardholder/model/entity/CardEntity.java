@@ -22,13 +22,13 @@ public class CardEntity {
     private CardType type;
     private LocalDate expireDate;
     private Boolean enable;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "issuer_iin", nullable = false)
     private CardIssuerEntity issuer;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "holder_ncod", nullable = false)
     private PersonEntity holder;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "account_num", nullable = false)
     private AccountEntity account;
 }

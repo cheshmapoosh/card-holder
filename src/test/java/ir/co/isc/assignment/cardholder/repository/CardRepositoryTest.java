@@ -15,6 +15,14 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 class CardRepositoryTest {
 
+    @Autowired
+    PersonRepository personRepository;
+
+    @Autowired
+    CardIssuerRepository cardIssuerRepository;
+
+    @Autowired
+    AccountRepository accountRepository;
 
     @Autowired
     CardRepository cardRepository;
@@ -31,15 +39,20 @@ class CardRepositoryTest {
         cardDto.setEnable(Boolean.TRUE);
         cardDto.setIssuerIin("603799");
         cardDto.setIssuerName("MELLI");
-        cardDto.setHolderNationalCode("5099553691");
-        cardDto.setHolderFirstName("Abbas8");
-        cardDto.setHolderFirstName("Cheshmapoosh8");
+        cardDto.setHolderNationalCode("3979277858");
+        cardDto.setHolderFirstName("Ali");
+        cardDto.setHolderFirstName("Dosti");
         cardDto.setHolderCallNumber("09121173691");
         cardDto.setHolderAddress("Tehran");
         cardDto.setAccountNumber("1221520592");
-        CardEntity cardEntity = cardRepository.save(cardDtoMapper.mapToCardEntity(cardDto));
+        CardEntity card = cardDtoMapper.mapToCardEntity(cardDto);
 
-        assertNotNull(cardEntity);
-        assertNotNull(cardEntity.getId());
+        personRepository.save(card.getHolder());
+        cardIssuerRepository.save(card.getIssuer());
+        accountRepository.save(card.getAccount());
+        cardRepository.save(card);
+
+        assertNotNull(card);
+        assertNotNull(card.getId());
     }
 }

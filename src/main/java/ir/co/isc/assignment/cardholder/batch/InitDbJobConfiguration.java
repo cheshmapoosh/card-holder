@@ -1,7 +1,10 @@
 package ir.co.isc.assignment.cardholder.batch;
 
 import ir.co.isc.assignment.cardholder.model.dto.CardDto;
+import ir.co.isc.assignment.cardholder.model.entity.AccountEntity;
 import ir.co.isc.assignment.cardholder.model.entity.CardEntity;
+import ir.co.isc.assignment.cardholder.model.entity.CardIssuerEntity;
+import ir.co.isc.assignment.cardholder.model.entity.PersonEntity;
 import ir.co.isc.assignment.cardholder.model.mapper.CardDtoMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -14,12 +17,15 @@ import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
+import org.springframework.batch.item.support.builder.CompositeItemWriterBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.persistence.EntityManagerFactory;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Configuration
@@ -93,10 +99,32 @@ public class InitDbJobConfiguration {
         return cardDtoMapper::mapToCardEntity;
     }
 
+
     @Bean
-    public JpaItemWriter<CardEntity> writer() {
-        JpaItemWriter<CardEntity> writer = new JpaItemWriter<>();
-        writer.setEntityManagerFactory(emf);
-        return writer;
+    public ItemWriter<CardEntity> writer() {
+        final JpaItemWriter<PersonEntity> writerHolder = new JpaItemWriter<>();
+        writerHolder.setEntityManagerFactory(emf);
+
+        final JpaItemWriter<CardIssuerEntity> writerIssuer = new JpaItemWriter<>();
+        writerIssuer.setEntityManagerFactory(emf);
+
+        final JpaItemWriter<AccountEntity> writerAccount = new JpaItemWriter<>();
+        writerAccount.setEntityManagerFactory(emf);
+
+        final JpaItemWriter<CardEntity> writerCard = new JpaItemWriter<>();
+        writerCard.setEntityManagerFactory(emf);
+        return cards -> {
+            List<PersonEntity> holders = cards.stream().map(CardEntity::getHolder).collect(Collectors.toList());
+            writerHolder.write(holders);
+
+            List<CardIssuerEntity> issuers= cards.stream().map(CardEntity::getIssuer).collect(Collectors.toList());
+            writerIssuer.write(issuers);
+
+            List<AccountEntity> accounts= cards.stream().map(CardEntity::getAccount).collect(Collectors.toList());
+            writerAccount.write(accounts);
+
+            writerCard.write(cards);
+
+        };
     }
 }
