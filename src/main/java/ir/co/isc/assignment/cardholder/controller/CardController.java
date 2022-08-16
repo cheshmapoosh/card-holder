@@ -1,5 +1,6 @@
 package ir.co.isc.assignment.cardholder.controller;
 
+import ir.co.isc.assignment.cardholder.exception.DuplicateDataException;
 import ir.co.isc.assignment.cardholder.model.constant.CardType;
 import ir.co.isc.assignment.cardholder.model.constant.SortDirection;
 import ir.co.isc.assignment.cardholder.model.constant.SortField;
@@ -13,10 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.constraints.Max;
@@ -89,5 +87,17 @@ public class CardController {
                 .total(cardEntityPage.getTotalElements())
                 .content(cardDtos)
                 .build();
+    }
+
+    @PostMapping()
+    public CardDto save(@RequestBody CardDto cardDto) {
+        CardEntity card = cardDtoMapper.mapToCardEntity(cardDto);
+        try {
+            card = cardService.save(card);
+            return cardDtoMapper.mapToCardDto(card);
+        } catch (DuplicateDataException e) {
+            throw new ResponseStatusException(HttpStatus.PRECONDITION_FAILED, e.getMessage());
+
+        }
     }
 }

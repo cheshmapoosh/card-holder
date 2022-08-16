@@ -15,4 +15,6 @@ public interface CardService {
                                        LocalDate toExpireLocalDate,
                                        CardType type,
                                        Pageable pageable);
+
+    CardEntity save(CardEntity card);
 }
