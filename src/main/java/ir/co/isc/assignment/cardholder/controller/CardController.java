@@ -31,7 +31,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/card")
-@Validated
+//@Validated
 public class CardController {
 
     private final CardService cardService;

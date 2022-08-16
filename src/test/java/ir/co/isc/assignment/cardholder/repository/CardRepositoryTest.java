@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static ir.co.isc.assignment.cardholder.model.constant.CardType.DEBIT;
@@ -31,7 +32,7 @@ class CardRepositoryTest {
     CardDtoMapper cardDtoMapper;
 
     @Test
-    void save_one_successful() {
+    void save_one_expected_successful() {
         CardDto cardDto = new CardDto();
         cardDto.setNumber("6104332841246571");
         cardDto.setType(DEBIT);
@@ -54,5 +55,48 @@ class CardRepositoryTest {
 
         assertNotNull(card);
         assertNotNull(card.getId());
+    }
+
+    @Test
+    void save_duplicate_holderAndIssuerAndCardType_expected_unsuccessful() {
+        CardDto cardDto = new CardDto();
+        cardDto.setNumber("6104332841246581");
+        cardDto.setType(DEBIT);
+        cardDto.setExpireDate("2029/01");
+        cardDto.setEnable(Boolean.TRUE);
+        cardDto.setIssuerIin("603799");
+        cardDto.setIssuerName("MELLI");
+        cardDto.setHolderNationalCode("3979297858");
+        cardDto.setHolderFirstName("Ali1");
+        cardDto.setHolderFirstName("Dosti1");
+        cardDto.setHolderCallNumber("09121173691");
+        cardDto.setHolderAddress("Tehran");
+        cardDto.setAccountNumber("1221520592");
+        CardEntity card = cardDtoMapper.mapToCardEntity(cardDto);
+
+        personRepository.save(card.getHolder());
+        cardIssuerRepository.save(card.getIssuer());
+        accountRepository.save(card.getAccount());
+        cardRepository.save(card);
+
+        CardDto cardDto2 = new CardDto();
+        cardDto2.setNumber("6104339841246581");
+        cardDto2.setType(DEBIT);
+        cardDto2.setExpireDate("2029/01");
+        cardDto2.setEnable(Boolean.TRUE);
+        cardDto2.setIssuerIin("603799");
+        cardDto2.setIssuerName("MELLI");
+        cardDto2.setHolderNationalCode("3979297858");
+        cardDto2.setHolderFirstName("Ali1");
+        cardDto2.setHolderFirstName("Dosti1");
+        cardDto2.setHolderCallNumber("09121173691");
+        cardDto2.setHolderAddress("Tehran");
+        cardDto2.setAccountNumber("1221520592");
+        CardEntity card2 = cardDtoMapper.mapToCardEntity(cardDto2);
+
+        personRepository.save(card2.getHolder());
+        cardIssuerRepository.save(card2.getIssuer());
+        accountRepository.save(card2.getAccount());
+        assertThrows(DataIntegrityViolationException.class, () -> cardRepository.save(card2));
     }
 }
