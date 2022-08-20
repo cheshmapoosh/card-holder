@@ -10,12 +10,20 @@ import java.util.UUID;
 @Entity
 public class PersonEntity {
     @Id
-    @Column(length = 10)
+    @Column(length = 10, nullable = false)
     private String nationalCode;
+
+    @Column(nullable = false)
     private String firstName;
+
+    @Column(nullable = false)
     private String lastName;
+
+    @Column(length = 13)
     private String callNumber;
+
     private String address;
+
     @OneToMany(mappedBy = "holder")
     private List<CardEntity> cardEntities;
 

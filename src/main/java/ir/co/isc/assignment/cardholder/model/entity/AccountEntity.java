@@ -9,6 +9,6 @@ import java.util.UUID;
 @Entity
 public class AccountEntity {
     @Id
-    @Column(length=10)
+    @Column(length=10, nullable = false)
     private String number;
 }

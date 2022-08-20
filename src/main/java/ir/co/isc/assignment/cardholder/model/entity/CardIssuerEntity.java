@@ -12,6 +12,8 @@ public class CardIssuerEntity {
     @Id
     @Column(length=6)
     private String iin;
+
+    @Column(nullable = false)
     private String name;
 
 }

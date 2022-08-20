@@ -9,6 +9,7 @@ import ir.co.isc.assignment.cardholder.model.mapper.CardDtoMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.item.ItemProcessor;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Configuration
+@EnableBatchProcessing
 public class InitDbJobConfiguration {
     public static final String INIT_DB_JOB = "init-db-job";
     public static final String INIT_DB_STEP = "init-db-step";

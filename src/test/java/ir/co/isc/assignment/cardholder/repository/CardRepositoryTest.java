@@ -32,7 +32,7 @@ class CardRepositoryTest {
     CardDtoMapper cardDtoMapper;
 
     @Test
-    void save_one_expected_successful() {
+    void saveOne_expectedSuccessful() {
         CardDto cardDto = new CardDto();
         cardDto.setNumber("6104332841246571");
         cardDto.setType(DEBIT);
@@ -58,7 +58,7 @@ class CardRepositoryTest {
     }
 
     @Test
-    void save_duplicate_holderAndIssuerAndCardType_expected_unsuccessful() {
+    void save_duplicateHolderAndIssuerAndCardType_expectedUnsuccessful() {
         CardDto cardDto = new CardDto();
         cardDto.setNumber("6104332841246581");
         cardDto.setType(DEBIT);

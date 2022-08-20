@@ -16,18 +16,30 @@ public class CardEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "CARD_SEQ")
     private Long id;
+
+    @Column(nullable = false)
     private String externalId;
+
     @Column(length = 16, nullable = false, unique = true)
     private String number;
+
+    @Column(nullable = false)
     private CardType type;
+
+    @Column(nullable = false)
     private LocalDate expireDate;
+
+    @Column(nullable = false)
     private Boolean enable;
+
     @ManyToOne
     @JoinColumn(name = "issuer_iin", nullable = false)
     private CardIssuerEntity issuer;
+
     @ManyToOne
     @JoinColumn(name = "holder_ncod", nullable = false)
     private PersonEntity holder;
+
     @ManyToOne
     @JoinColumn(name = "account_num", nullable = false)
     private AccountEntity account;

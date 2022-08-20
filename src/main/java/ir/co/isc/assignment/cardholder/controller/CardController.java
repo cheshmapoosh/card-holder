@@ -5,10 +5,12 @@ import ir.co.isc.assignment.cardholder.model.constant.CardType;
 import ir.co.isc.assignment.cardholder.model.constant.SortDirection;
 import ir.co.isc.assignment.cardholder.model.constant.SortField;
 import ir.co.isc.assignment.cardholder.model.dto.CardDto;
+import ir.co.isc.assignment.cardholder.model.dto.CardSearchDto;
 import ir.co.isc.assignment.cardholder.model.dto.PageDto;
 import ir.co.isc.assignment.cardholder.model.entity.CardEntity;
 import ir.co.isc.assignment.cardholder.model.mapper.CardDtoMapper;
 import ir.co.isc.assignment.cardholder.service.CardService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -18,6 +20,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
@@ -28,9 +31,9 @@ import java.time.temporal.ChronoField;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/card")
-//@Validated
 public class CardController {
 
     private final CardService cardService;
@@ -44,49 +47,42 @@ public class CardController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    PageDto<CardDto> findAllByCriteria(
-            @RequestParam(required = false) @Pattern(regexp = "^[^<>%\\-@+$|='\"]*$") String holderNationalCode,
-            @RequestParam(required = false) @Pattern(regexp = "^[^<>%\\-@+$|='\"]*$") String holderFirstName,
-            @RequestParam(required = false) @Pattern(regexp = "^[^<>%\\-@+$|='\"]*$") String holderLastName,
-            @RequestParam(required = false) @Pattern(regexp = "^[^<>%\\-@+$|='\"]*$") String fromExpireDate,
-            @RequestParam(required = false) @Pattern(regexp = "^[^<>%\\-@+$|='\"]*$") String toExpireDate,
-            @RequestParam(required = false) CardType type,
-            @RequestParam(required = false, defaultValue = "HOLDER_NATIONAL_CODE") SortField sortField,
-            @RequestParam(required = false, defaultValue = "DESC") SortDirection sortDirection,
-            @RequestParam(required = false, defaultValue = "0") @Min(0) Integer page,
-            @RequestParam(required = false, defaultValue = "5") @Min(1) @Max(100) Integer size
-    ) {
+    PageDto<CardDto> findAllByCriteria(@Valid @RequestBody CardSearchDto cardSearchDto) {
         final DateTimeFormatter formatter = new DateTimeFormatterBuilder()
                 .appendPattern("yyyy/MM")
                 .parseDefaulting(ChronoField.DAY_OF_MONTH, 1)
                 .toFormatter();
-        LocalDate fromExpireLocalDate = Optional.ofNullable(fromExpireDate)
+        LocalDate fromExpireLocalDate = Optional.ofNullable(cardSearchDto.getFromExpireDate())
                 .map(from -> LocalDate.parse(from, formatter).plusMonths(1).minusDays(1))
                 .orElse(null);
-        LocalDate toExpireLocalDate = Optional.ofNullable(toExpireDate)
+        LocalDate toExpireLocalDate = Optional.ofNullable(cardSearchDto.getToExpireDate())
                 .map(to -> LocalDate.parse(to, formatter).plusMonths(1).minusDays(1))
                 .orElse(null);
-        PageRequest pageRequest = PageRequest.of(page, size,
-                sortDirection == SortDirection.ASC ?
-                        Sort.by(sortField.getType()).ascending() :
-                        Sort.by(sortField.getType()).descending());
-        Page<CardEntity> cardEntityPage = cardService.findAllByCriteria(holderNationalCode,
-                holderFirstName,
-                holderLastName,
+        PageRequest pageRequest = PageRequest.of(cardSearchDto.getPage(), cardSearchDto.getSize(),
+                cardSearchDto.getSortDirection() == SortDirection.ASC ?
+                        Sort.by(cardSearchDto.getSortField().getType()).ascending() :
+                        Sort.by(cardSearchDto.getSortField().getType()).descending());
+        Page<CardEntity> cardEntityPage = cardService.findAllByCriteria(cardSearchDto.getHolderNationalCode(),
+                cardSearchDto.getHolderFirstName(),
+                cardSearchDto.getHolderLastName(),
                 fromExpireLocalDate,
                 toExpireLocalDate,
-                type,
+                cardSearchDto.getType(),
                 pageRequest);
 
-        if (cardEntityPage.getTotalElements() == 0) {
+        long total = cardEntityPage.getTotalElements();
+        if (total == 0) {
+            log.warn(String.format("No cards were found matching criteria[%s]", cardSearchDto));
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No cards were found matching your criteria");
         }
 
+        int size = cardEntityPage.getNumberOfElements();
+        log.info(String.format("Fetch %d of %d card by criteria[%s]", size, total, cardSearchDto));
         List<CardDto> cardDtos = cardDtoMapper.mapToCardDtos(cardEntityPage.getContent());
         return PageDto.<CardDto>builder()
                 .page(cardEntityPage.getNumber())
-                .size(cardEntityPage.getNumberOfElements())
-                .total(cardEntityPage.getTotalElements())
+                .size(size)
+                .total(total)
                 .content(cardDtos)
                 .build();
     }

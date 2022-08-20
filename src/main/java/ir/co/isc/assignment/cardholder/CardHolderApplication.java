@@ -11,8 +11,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @Slf4j
 @SpringBootApplication
 @EnableJpaRepositories
-@EnableBatchProcessing
-@EnableMethodSecurity
 public class CardHolderApplication {
 
     public static void main(String[] args) {
